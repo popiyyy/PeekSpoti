@@ -1,15 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SearchController; 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 
 // Halaman Utama
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// Tombol Search 
-Route::post('/search', [SearchController::class, 'search'])->name('search'); 
+// Autentikasi Spotify
+Route::get('/auth/redirect', [AuthController::class, 'redirect'])->name('spotify.login');
+Route::get('/auth/callback', [AuthController::class, 'callback'])->name('spotify.callback');
 
-// Hasil Pencarian 
-Route::get('/u/{username}', [SearchController::class, 'showProfile'])->name('profile.show'); 
+// Dashboard Pribadi
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard'); 

@@ -15,7 +15,7 @@ class SpotifyAnalyzerService
         return Cache::remember('spotify_access_token', 3500, function(){
             $clientId = env('SPOTIFY_CLIENT_ID');
             $clientSecret = env('SPOTIFY_CLIENT_SECRET');
-            $response = Http::asForm()->withBasicAuth($clientId, $clientSecret)->post('https://accounts.spotify.com/api/token', ['grant_type' => 'client_credentials', ]);
+            $response = Http::withoutVerifying()->asForm()->withBasicAuth($clientId, $clientSecret)->post('https://accounts.spotify.com/api/token', ['grant_type' => 'client_credentials', ]);
             if ($response->failed()) {
                 throw new Exception('Gagal mendapatkan otorisasi dari Spotify. Cek Client ID & Secret di .env'); 
             }
@@ -27,7 +27,7 @@ class SpotifyAnalyzerService
     public function getUserProfile($username)
     {
         $token = $this->getAccessToken();
-        $response = Http::withToken($token)->get("https://api.spotify.com/v1/users/{$username}");
+        $response = Http::withoutVerifying()->withToken($token)->get("https://api.spotify.com/v1/users/{$username}");
         if ($response->failed()) {
             return null; // jika username tidak ditemukan
         }
@@ -39,7 +39,7 @@ class SpotifyAnalyzerService
     public function analyzePlaylist($username)
     {
         $token = $this->getAccessToken();
-        $playlistsResponse = Http::withToken($token)->get("https://api.spotify.com/v1/users/{$username}/playlists", ['limit' => 50]);
+        $playlistsResponse = Http::withoutVerifying()->withToken($token)->get("https://api.spotify.com/v1/users/{$username}/playlists", ['limit' => 50]);
         if ($playlistsResponse->failed()){
             throw new Exception("Gagal mengambil daftar playlist.");
         }
@@ -51,7 +51,7 @@ class SpotifyAnalyzerService
         // Mengambil lagu playlist 
         foreach ($playlist as $pl) {
             if (!isset($pl['tracks']['href'])) continue; 
-            $tracksResponse = Http::withToken($token)->get($pl['tracks']['href'], ['limit' => 100]); 
+            $tracksResponse = Http::withoutVerifying()->withToken($token)->get($pl['tracks']['href'], ['limit' => 100]); 
 
             if ($tracksResponse->successful()) { 
                 $tracks = collect($tracksResponse->json('items'))->pluck('track.artists')->flatten(1); 
