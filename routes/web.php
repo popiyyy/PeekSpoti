@@ -12,6 +12,7 @@ Route::get('/', function () {
 // Autentikasi Spotify
 Route::get('/auth/redirect', [AuthController::class, 'redirect'])->name('spotify.login');
 Route::get('/auth/callback', [AuthController::class, 'callback'])->name('spotify.callback');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Dashboard Pribadi
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard'); 

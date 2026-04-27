@@ -37,9 +37,13 @@
             </div>
 
             <div class="md:ml-auto">
-                <a href="{{ route('home') }}" class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold rounded-full transition-colors flex items-center gap-2">
-                    Pencarian Baru
-                </a>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 text-sm font-semibold rounded-full transition-all flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        Keluar
+                    </button>
+                </form>
             </div>
         </div>
 

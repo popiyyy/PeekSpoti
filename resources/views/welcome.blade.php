@@ -5,64 +5,31 @@
 
     <!-- Hero Title --> 
     <div class="space-y-4">
-        <h1 class="text-4xl md:text-6xl font-extrabold trackiing-tight text-white drop-shadow-lg">
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-white drop-shadow-lg">
             Bongkar Selera Musik <br class="hidden md:block">
-            <span class="text-emerald-500">Siapa Saja.</span>
+            <span class="text-emerald-500">Anda Sendiri.</span>
         </h1>
         <p class="text-lg text-zinc-400 max-w-xl mx-auto font-medium">
-            Kepo dengan musik yang sering didengar gebetan atau idola kamu? Masukkan *username* Spotify Mereka di bawah ini. 
+            Kepo dengan lagu dan artis yang paling sering Anda dengar? Hubungkan akun Spotify Anda dengan aman untuk melihat statistik aslinya!
         </p>
     </div>
 
-    <!-- Search Form -->
-    <div class="w-full max-w-xl">
-        <form action="{{ route('search') }}" method="POST" class="relative group">
-            @csrf
-
-            <!-- Ikon Kaca Pembesar --> 
-            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                <svg class="h-6 w-6 text-zinc-500 group-focus-within:text-emerald-500 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </div>
-
-            <!-- Input Form --> 
-            <input
-                type="text"
-                name="username"
-                placeholder="Username atau Link Profil Spotify..."
-                required
-                autocomplete="off"
-                class="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-full py-5 pl-14 pr-36 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all placeholder:text-zinc-600 shadow-2xl text-lg"
-            >
-
-            <!-- Tombol Submit --> 
-            <button 
-                type="submit"
-                class="absolute inset-y-2 right-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-full px-8 transition-all duration-300 shadow-lg hover:shadow-emerald-500/30 flex items-center justify-center"
-            >
-                Cari Sekarang
-            </button>
-        </form>
-
-        <!-- Throw error jika form kosong atau salah -->
-        @error('username')
-        <p class="text-red-500 text-sm mt-4 font-medium">
-            {{ $message }}
-            @enderror
-        </p>
+    <!-- Login Button -->
+    <div class="w-full max-w-md pt-4">
+        <a href="{{ route('spotify.login') }}" class="group relative inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 font-bold text-white transition-all duration-300 bg-emerald-600 rounded-full hover:bg-emerald-500 hover:shadow-[0_0_40px_rgba(16,185,129,0.4)] focus:outline-none focus:ring-4 focus:ring-emerald-500/50">
+            <!-- Spotify Icon -->
+            <svg class="w-6 h-6 mr-3 transition-transform duration-300 group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.08-1.32 11.16-1.08 16.02 1.8.54.301.72.96.42 1.5-.299.54-.959.72-1.5.42z"/></svg>
+            Masuk dengan Spotify
+        </a>
     </div>
 
     <!-- Badge fitur tambahan --> 
     <div class="flex flex-wrap justify-center gap-4 mt-8 opacity-80">
         <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-5 py-2 text-sm text-zinc-300 font-medium shadow-sm">
-            <span class="text-emerald-550">✓</span> Tanpa Login
+            <span class="text-emerald-500">✓</span> 100% Aman & Pribadi
         </div>
         <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-5 py-2 text-sm text-zinc-300 font-medium shadow-sm">
-            <span class="text-emerald-550">✓</span> 100% Gratis
-        </div>
-        <div class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-5 py-2 text-sm text-zinc-300 font-medium shadow-sm">
-            <span class="text-emerald-550">✓</span> Real-Time API
+            <span class="text-emerald-500">✓</span> Data Valid
         </div>
     </div>
 </div>
