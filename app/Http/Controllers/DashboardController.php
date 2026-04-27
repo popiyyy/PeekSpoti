@@ -14,14 +14,12 @@ class DashboardController extends Controller
             return redirect()->route('home');
         }
 
-        // Karena kita belum mengimplementasikan auth guard penuh, 
-        // kita ambil data berdasar session (ini sangat dasar, tapi cocok untuk demo).
         $profileResponse = Http::withoutVerifying()->withToken($token)->get("https://api.spotify.com/v1/me");
-        
+
         if ($profileResponse->failed()) {
             return view('dashboard', ['error' => 'Sesi Spotify Anda telah berakhir atau tidak valid.']);
         }
-        
+
         $profile = $profileResponse->json();
         $spotifyId = $profile['id'];
 
@@ -39,19 +37,14 @@ class DashboardController extends Controller
         if ($topResponse->successful()) {
             $items = $topResponse->json('items') ?? [];
             foreach ($items as $index => $item) {
-                // Jika popularity tidak ada, gunakan default (menurun berdasarkan urutan)
                 $score = $item['popularity'] ?? (100 - ($index * 2));
-                $artists[$item['name']] = $score; 
+                $artists[$item['name']] = $score;
             }
         }
 
-        // Kita modifikasi Dashboard View agar menerima data top artis ini.
-        // Sebelumnya, analysis->top_artists_json. Kita over-ride:
-        
         if ($user) {
-            $user->total_public_playlists = 0; // Tidak lagi menghitung playlist
+            $user->total_public_playlists = 0; 
         } else {
-            // Fallback jika anehnya tidak masuk database
             $user = (object) [
                 'display_name' => $profile['display_name'],
                 'avatar_url' => $profile['images'][0]['url'] ?? null,
@@ -63,9 +56,36 @@ class DashboardController extends Controller
             'top_artists_json' => $artists
         ];
 
+        $aiAnalysis = null;
+        $geminiKey = env('GEMINI_API_KEY'); 
+
+        if ($geminiKey && count($artists) > 0) { 
+            $artisNames = array_keys($artists); 
+            $prompt = "Sebagai pakar musik yang asik dan gaul, berikan 1 paragraf analisis singkat(maksimal 3 kalimat) tentang kepribadian orang yang paling sering mendengarkan artis-artis berikut: ". implode(", ", array_slice($artisNames, 0, 10)) . ". Gunakan gaya bahasa anak muda Indonesia yang santai dan tambahkan emoji yang pas."; 
+
+            try { 
+                $geminiResponse = Http::withoutVerifying()->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=". $geminiKey, [
+                    'contents' => [
+                        ['parts' => [['text' => $prompt]]]
+                    ] 
+                ]);
+
+                if ($geminiResponse->successful()) { 
+                    $aiAnalysis = $geminiResponse->json('candidates.0.content.parts.0.text');
+                } else {
+                    $aiAnalysis = "Wah, AI-nya lagi sibuk nge-jamming lagu lain nih. Coba lagi nanti ya!";
+                }
+            } catch (\Exception $e) {
+                $aiAnalysis = "Koneksi ke AI terputus. Coba refresh halamannya!";
+            }
+        } else if (!$geminiKey) {
+            $aiAnalysis = "API Key Gemini belum terbaca di .env";
+        } 
+
         return view('dashboard', [
             'user' => $user,
-            'analysis' => $analysis
+            'analysis' => $analysis,
+            'aiAnalysis' => $aiAnalysis
         ]);
     }
 }

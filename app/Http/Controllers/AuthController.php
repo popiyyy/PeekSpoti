@@ -23,7 +23,6 @@ class AuthController extends Controller
             return redirect('/')->withErrors(['username' => 'Gagal login dengan Spotify: ' . $e->getMessage()]);
         }
 
-        // Simpan data profil pengguna ke database kita (Atau perbarui jika sudah ada)
         $user = SearchedUser::updateOrCreate(
             ['spotify_username' => $spotifyUser->id],
             [
@@ -32,7 +31,6 @@ class AuthController extends Controller
             ]
         );
         
-        // Simpan tokennya sementara di session untuk menarik top artis.
         session(['spotify_user_token' => $spotifyUser->token]);
 
         return redirect()->route('dashboard');

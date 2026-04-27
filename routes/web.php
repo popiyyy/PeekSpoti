@@ -15,4 +15,4 @@ Route::get('/auth/callback', [AuthController::class, 'callback'])->name('spotify
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Dashboard Pribadi
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard'); 
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
