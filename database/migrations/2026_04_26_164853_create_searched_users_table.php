@@ -12,6 +12,10 @@ return new class extends Migration {
     {
         Schema::create('searched_users', function (Blueprint $table) {
             $table->id();
+            $table->string('spotify_username')->unique();
+            $table->string('display_name')->nullable();
+            $table->text('avatar_url')->nullable();
+            $table->integer('total_public_playlists')->default(0);
             $table->timestamps();
         });
     }

@@ -12,6 +12,10 @@ return new class extends Migration {
     {
         Schema::create('cached_analyses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('searched_user_id')->constrained()->onDelete('cascade');
+            $table->jsonb('top_artists_json')->nullable();
+            $table->jsonb('top_genres_json')->nullable();
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
     }
