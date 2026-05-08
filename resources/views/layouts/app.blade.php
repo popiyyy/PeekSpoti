@@ -39,7 +39,7 @@
     </main>
 
     <!-- Footer --> 
-    <footer class="border-t border-zinc-900 py-6 text-center text-zinc-600 text-sm">
+    <footer class="py-6 text-center text-zinc-600 text-sm">
         <p>&copy; {{ date('Y') }} SpotiPeek. All Right Reserved.</p>
     </footer>
 </body>
