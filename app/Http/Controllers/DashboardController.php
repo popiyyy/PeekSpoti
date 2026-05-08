@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use App\Models\SearchedUser;
 
 class DashboardController extends Controller
@@ -30,7 +31,7 @@ class DashboardController extends Controller
             ->withToken($token)
             ->get("https://api.spotify.com/v1/me/top/artists", [
                 'limit' => 20,
-                'time_range' => 'medium_term' // 6 bulan terakhir
+                'time_range' => 'short_term' // 1 bulan terakhir
             ]);
 
         $artists = [];
@@ -56,41 +57,45 @@ class DashboardController extends Controller
             'top_artists_json' => $artists
         ];
 
-        $aiAnalysis = null;
-        $geminiKey = config('services.gemini.api_key'); 
+        // Cache disimpan selama 5 menit per user, berdasarkan Spotify ID
+        $cacheKey = "gemini_analysis_{$spotifyId}";
+        $aiAnalysis = Cache::get($cacheKey);
 
-        if ($geminiKey && count($artists) > 0) { 
-            $artisNames = array_keys($artists); 
-            $prompt = "Sebagai pakar musik yang asik dan gaul, berikan 1 paragraf analisis singkat (maksimal 3 kalimat) tentang kepribadian orang yang paling sering mendengarkan artis-artis berikut: " . implode(", ", array_slice($artisNames, 0, 10)) . ". Gunakan gaya bahasa anak muda Indonesia yang santai dan tambahkan emoji yang pas. Jangan gunakan format markdown seperti bintang (bold/italic) sama sekali."; 
+        if (!$aiAnalysis && count($artists) > 0) {
+            $geminiKey = config('services.gemini.api_key');
 
-            // Daftar model yang akan dicoba secara berurutan
-            $models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+            if ($geminiKey) {
+                $artisNames = array_keys($artists); 
+                $prompt = "Sebagai pakar musik yang asik dan gaul, berikan 1 paragraf analisis singkat (maksimal 3 kalimat) tentang kepribadian orang yang paling sering mendengarkan artis-artis berikut: " . implode(", ", array_slice($artisNames, 0, 10)) . ". Gunakan gaya bahasa anak muda Indonesia yang santai dan tambahkan emoji yang pas. Jangan gunakan format markdown seperti bintang (bold/italic) sama sekali."; 
 
-            foreach ($models as $model) {
-                try { 
-                    $geminiResponse = Http::withoutVerifying()
-                        ->timeout(15)
-                        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $geminiKey, [
-                            'contents' => [
-                                ['parts' => [['text' => $prompt]]]
-                            ] 
-                        ]);
+                $models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
 
-                    if ($geminiResponse->successful()) { 
-                        $aiAnalysis = $geminiResponse->json('candidates.0.content.parts.0.text');
-                        break; // Berhasil, tidak perlu coba model lain
+                foreach ($models as $model) {
+                    try { 
+                        $geminiResponse = Http::withoutVerifying()
+                            ->timeout(15)
+                            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $geminiKey, [
+                                'contents' => [
+                                    ['parts' => [['text' => $prompt]]]
+                                ] 
+                            ]);
+
+                        if ($geminiResponse->successful()) { 
+                            $aiAnalysis = $geminiResponse->json('candidates.0.content.parts.0.text');
+                            Cache::put($cacheKey, $aiAnalysis, 300);
+                            break;
+                        }
+                    } catch (\Exception $e) {
+                        continue;
                     }
-                } catch (\Exception $e) {
-                    continue; // Coba model berikutnya
                 }
-            }
 
-            // Jika semua model gagal, tampilkan pesan debug
-            if (!$aiAnalysis) {
-                $aiAnalysis = "[DEBUG] Semua model Gemini gagal. Key terbaca: " . substr($geminiKey, 0, 10) . "... | Response terakhir: " . ($geminiResponse->status() ?? 'N/A') . " - " . substr($geminiResponse->body() ?? '', 0, 200);
+                if (!$aiAnalysis) {
+                    $aiAnalysis = "AI sedang sibuk, coba lagi nanti ya!";
+                }
+            } else {
+                $aiAnalysis = "API Key Gemini belum dikonfigurasi.";
             }
-        } else if (!$geminiKey) {
-            $aiAnalysis = "[DEBUG] API Key Gemini NULL — config('services.gemini.api_key') kosong. Coba jalankan: php artisan config:clear";
         } 
 
         return view('dashboard', [
