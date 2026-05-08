@@ -74,7 +74,7 @@
                         ✨ AI Music Personality
                     </h3>
                     <p class="text-zinc-200 leading-relaxed relative z-10 font-medium italic">
-                        "{{ str_replace('"', '', $aiAnalysis) }}"
+                        {{ str_replace(['"', '*'], '', $aiAnalysis) }}
                     </p>
                 </div> 
                 @endif 
