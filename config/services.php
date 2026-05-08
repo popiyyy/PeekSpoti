@@ -41,4 +41,8 @@ return [
         'redirect' => env('SPOTIFY_REDIRECT_URI', 'https://spotipeek.test/auth/callback'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+    ],
+
 ];

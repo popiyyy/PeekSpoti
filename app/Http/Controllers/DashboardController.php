@@ -57,29 +57,40 @@ class DashboardController extends Controller
         ];
 
         $aiAnalysis = null;
-        $geminiKey = env('GEMINI_API_KEY'); 
+        $geminiKey = config('services.gemini.api_key'); 
 
         if ($geminiKey && count($artists) > 0) { 
             $artisNames = array_keys($artists); 
-            $prompt = "Sebagai pakar musik yang asik dan gaul, berikan 1 paragraf analisis singkat(maksimal 3 kalimat) tentang kepribadian orang yang paling sering mendengarkan artis-artis berikut: ". implode(", ", array_slice($artisNames, 0, 10)) . ". Gunakan gaya bahasa anak muda Indonesia yang santai dan tambahkan emoji yang pas."; 
+            $prompt = "Sebagai pakar musik yang asik dan gaul, berikan 1 paragraf analisis singkat (maksimal 3 kalimat) tentang kepribadian orang yang paling sering mendengarkan artis-artis berikut: " . implode(", ", array_slice($artisNames, 0, 10)) . ". Gunakan gaya bahasa anak muda Indonesia yang santai dan tambahkan emoji yang pas."; 
 
-            try { 
-                $geminiResponse = Http::withoutVerifying()->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=". $geminiKey, [
-                    'contents' => [
-                        ['parts' => [['text' => $prompt]]]
-                    ] 
-                ]);
+            // Daftar model yang akan dicoba secara berurutan
+            $models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
 
-                if ($geminiResponse->successful()) { 
-                    $aiAnalysis = $geminiResponse->json('candidates.0.content.parts.0.text');
-                } else {
-                    $aiAnalysis = "Wah, AI-nya lagi sibuk nge-jamming lagu lain nih. Coba lagi nanti ya!";
+            foreach ($models as $model) {
+                try { 
+                    $geminiResponse = Http::withoutVerifying()
+                        ->timeout(15)
+                        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $geminiKey, [
+                            'contents' => [
+                                ['parts' => [['text' => $prompt]]]
+                            ] 
+                        ]);
+
+                    if ($geminiResponse->successful()) { 
+                        $aiAnalysis = $geminiResponse->json('candidates.0.content.parts.0.text');
+                        break; // Berhasil, tidak perlu coba model lain
+                    }
+                } catch (\Exception $e) {
+                    continue; // Coba model berikutnya
                 }
-            } catch (\Exception $e) {
-                $aiAnalysis = "Koneksi ke AI terputus. Coba refresh halamannya!";
+            }
+
+            // Jika semua model gagal, tampilkan pesan debug
+            if (!$aiAnalysis) {
+                $aiAnalysis = "[DEBUG] Semua model Gemini gagal. Key terbaca: " . substr($geminiKey, 0, 10) . "... | Response terakhir: " . ($geminiResponse->status() ?? 'N/A') . " - " . substr($geminiResponse->body() ?? '', 0, 200);
             }
         } else if (!$geminiKey) {
-            $aiAnalysis = "API Key Gemini belum terbaca di .env";
+            $aiAnalysis = "[DEBUG] API Key Gemini NULL — config('services.gemini.api_key') kosong. Coba jalankan: php artisan config:clear";
         } 
 
         return view('dashboard', [
