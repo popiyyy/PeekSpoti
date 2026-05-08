@@ -43,6 +43,12 @@ return [
 
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
+        // Daftar model fallback yang akan dicoba secara berurutan
+        'models' => [
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-lite',
+        ],
     ],
 
 ];

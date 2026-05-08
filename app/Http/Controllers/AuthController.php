@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\SearchedUser;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -20,7 +21,10 @@ class AuthController extends Controller
         try {
             $spotifyUser = Socialite::driver('spotify')->user();
         } catch (\Exception $e) {
-            return redirect('/')->withErrors(['username' => 'Gagal login dengan Spotify: ' . $e->getMessage()]);
+            // Catat error detail di log server (storage/logs/laravel.log)
+            Log::error('Spotify OAuth Error: ' . $e->getMessage());
+            // Tampilkan pesan generik ke user (tanpa detail internal)
+            return redirect('/')->withErrors(['username' => 'Gagal login dengan Spotify. Silakan coba lagi.']);
         }
 
         $user = SearchedUser::updateOrCreate(

@@ -3,19 +3,31 @@
 namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Client\PendingRequest;
 use Exception;
 
 
 class SpotifyAnalyzerService
 {
-    
+    /**
+     * Helper: Buat HTTP client yang aman.
+     * SSL verification hanya dinonaktifkan di environment lokal (Laragon).
+     */
+    private function http(): PendingRequest
+    {
+        $http = Http::timeout(15);
+        if (app()->environment('local')) {
+            $http = $http->withoutVerifying();
+        }
+        return $http;
+    }
     // Mengambil Acces Token dari Spotify
     private function getAccessToken()
     {
         return Cache::remember('spotify_access_token', 3500, function(){
-            $clientId = env('SPOTIFY_CLIENT_ID');
-            $clientSecret = env('SPOTIFY_CLIENT_SECRET');
-            $response = Http::withoutVerifying()->asForm()->withBasicAuth($clientId, $clientSecret)->post('https://accounts.spotify.com/api/token', ['grant_type' => 'client_credentials', ]);
+            $clientId = config('services.spotify.client_id');
+            $clientSecret = config('services.spotify.client_secret');
+            $response = $this->http()->asForm()->withBasicAuth($clientId, $clientSecret)->post('https://accounts.spotify.com/api/token', ['grant_type' => 'client_credentials', ]);
             if ($response->failed()) {
                 throw new Exception('Gagal mendapatkan otorisasi dari Spotify. Cek Client ID & Secret di .env'); 
             }
@@ -27,7 +39,7 @@ class SpotifyAnalyzerService
     public function getUserProfile($username)
     {
         $token = $this->getAccessToken();
-        $response = Http::withoutVerifying()->withToken($token)->get("https://api.spotify.com/v1/users/{$username}");
+        $response = $this->http()->withToken($token)->get("https://api.spotify.com/v1/users/{$username}");
         if ($response->failed()) {
             return null; // jika username tidak ditemukan
         }
@@ -39,7 +51,7 @@ class SpotifyAnalyzerService
     public function analyzePlaylist($username)
     {
         $token = $this->getAccessToken();
-        $playlistsResponse = Http::withoutVerifying()->withToken($token)->get("https://api.spotify.com/v1/users/{$username}/playlists", ['limit' => 50]);
+        $playlistsResponse = $this->http()->withToken($token)->get("https://api.spotify.com/v1/users/{$username}/playlists", ['limit' => 50]);
         if ($playlistsResponse->failed()){
             throw new Exception("Gagal mengambil daftar playlist.");
         }
@@ -51,7 +63,7 @@ class SpotifyAnalyzerService
         // Mengambil lagu playlist 
         foreach ($playlist as $pl) {
             if (!isset($pl['tracks']['href'])) continue; 
-            $tracksResponse = Http::withoutVerifying()->withToken($token)->get($pl['tracks']['href'], ['limit' => 100]); 
+            $tracksResponse = $this->http()->withToken($token)->get($pl['tracks']['href'], ['limit' => 100]); 
 
             if ($tracksResponse->successful()) { 
                 $tracks = collect($tracksResponse->json('items'))->pluck('track.artists')->flatten(1); 

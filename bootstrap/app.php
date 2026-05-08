@@ -11,7 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'spotify.auth' => \App\Http\Middleware\EnsureSpotifyToken::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -5,9 +5,23 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use App\Models\SearchedUser;
+use Illuminate\Http\Client\PendingRequest;
 
 class DashboardController extends Controller
 {
+    /**
+     * Helper: Buat HTTP client yang aman.
+     * SSL verification hanya dinonaktifkan di environment lokal.
+     */
+    private function http(): PendingRequest
+    {
+        $http = Http::timeout(15);
+        if (app()->environment('local')) {
+            $http = $http->withoutVerifying();
+        }
+        return $http;
+    }
+
     public function index()
     {
         $token = session('spotify_user_token');
@@ -15,7 +29,7 @@ class DashboardController extends Controller
             return redirect()->route('home');
         }
 
-        $profileResponse = Http::withoutVerifying()->withToken($token)->get("https://api.spotify.com/v1/me");
+        $profileResponse = $this->http()->withToken($token)->get("https://api.spotify.com/v1/me");
 
         if ($profileResponse->failed()) {
             return view('dashboard', ['error' => 'Sesi Spotify Anda telah berakhir atau tidak valid.']);
@@ -26,8 +40,7 @@ class DashboardController extends Controller
 
         $user = SearchedUser::where('spotify_username', $spotifyId)->first();
 
-        // Ambil Top Artis (Bisa long term, medium term, short term)
-        $topResponse = Http::withoutVerifying()
+        $topResponse = $this->http()
             ->withToken($token)
             ->get("https://api.spotify.com/v1/me/top/artists", [
                 'limit' => 20,
@@ -68,13 +81,13 @@ class DashboardController extends Controller
                 $artisNames = array_keys($artists); 
                 $prompt = "Sebagai pakar musik yang asik dan gaul, berikan 1 paragraf analisis singkat (maksimal 3 kalimat) tentang kepribadian orang yang paling sering mendengarkan artis-artis berikut: " . implode(", ", array_slice($artisNames, 0, 10)) . ". Gunakan gaya bahasa anak muda Indonesia yang santai dan tambahkan emoji yang pas. Jangan gunakan format markdown seperti bintang (bold/italic) sama sekali."; 
 
-                $models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+                $models = config('services.gemini.models', ['gemini-2.5-flash']);
 
                 foreach ($models as $model) {
                     try { 
-                        $geminiResponse = Http::withoutVerifying()
-                            ->timeout(15)
-                            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $geminiKey, [
+                        $geminiResponse = $this->http()
+                            ->withHeaders(['x-goog-api-key' => $geminiKey])
+                            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", [
                                 'contents' => [
                                     ['parts' => [['text' => $prompt]]]
                                 ] 

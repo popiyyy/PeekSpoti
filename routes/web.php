@@ -9,10 +9,15 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// Autentikasi Spotify
-Route::get('/auth/redirect', [AuthController::class, 'redirect'])->name('spotify.login');
-Route::get('/auth/callback', [AuthController::class, 'callback'])->name('spotify.callback');
+// Autentikasi Spotify (Dibatasi 10 request per menit untuk mencegah abuse)
+Route::middleware('throttle:10,1')->group(function () {
+    Route::get('/auth/redirect', [AuthController::class, 'redirect'])->name('spotify.login');
+    Route::get('/auth/callback', [AuthController::class, 'callback'])->name('spotify.callback');
+});
+
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Dashboard Pribadi
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Dashboard Pribadi (Harus login Spotify, dibatasi 30 request per menit)
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['spotify.auth', 'throttle:30,1'])
+    ->name('dashboard');
