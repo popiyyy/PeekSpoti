@@ -40,7 +40,7 @@
 
     <!-- Footer --> 
     <footer class="py-6 text-center text-zinc-600 text-sm">
-        <p>&copy; {{ date('Y') }} SpotiPeek. All Right Reserved.</p>
+        <p>&copy; {{ date('Y') }} SpotiPeek. All Rights Reserved.</p>
     </footer>
 </body>
 </html>
