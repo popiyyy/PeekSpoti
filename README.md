@@ -111,4 +111,4 @@ Jika aplikasi ini akan di-hosting secara publik (Production), pastikan Anda mela
 
 ---
 
-**Dibuat dengan ❤️ untuk para penikmat musik.**
+**SpotiPeek. All Rights Reserved.**
