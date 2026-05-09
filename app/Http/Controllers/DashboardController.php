@@ -40,19 +40,98 @@ class DashboardController extends Controller
 
         $user = SearchedUser::where('spotify_username', $spotifyId)->first();
 
-        $topResponse = $this->http()
+        // Ambil Top Artists
+        $topArtistsResponse = $this->http()
             ->withToken($token)
             ->get("https://api.spotify.com/v1/me/top/artists", [
-                'limit' => 20,
-                'time_range' => 'short_term' // 1 bulan terakhir
+                'limit' => 10,
+                'time_range' => 'short_term'
             ]);
 
         $artists = [];
-        if ($topResponse->successful()) {
-            $items = $topResponse->json('items') ?? [];
+        $topArtistImage = null;
+        $topGenre = 'Unknown';
+        $genreCount = [];
+
+        if ($topArtistsResponse->successful()) {
+            $items = $topArtistsResponse->json('items') ?? [];
             foreach ($items as $index => $item) {
                 $score = $item['popularity'] ?? (100 - ($index * 2));
                 $artists[$item['name']] = $score;
+
+                // Ambil gambar artis #1
+                if ($index === 0 && !empty($item['images'])) {
+                    $topArtistImage = $item['images'][0]['url'];
+                }
+
+            }
+        }
+        // Ambil Top Tracks
+        $topTracksResponse = $this->http()
+            ->withToken($token)
+            ->get("https://api.spotify.com/v1/me/top/tracks", [
+                'limit' => 50, // Ambil 50 lagu teratas
+                'time_range' => 'short_term'
+            ]);
+
+        $topTracks = [];
+        $trackArtistIds = [];
+        $totalDurationMs = 0;
+        $artistDurationMs = []; // Durasi per artis
+
+        if ($topTracksResponse->successful()) {
+            $trackItems = $topTracksResponse->json('items') ?? [];
+            foreach ($trackItems as $index => $track) {
+                // Simpan 5 lagu teratas untuk ditampilkan
+                if ($index < 5) {
+                    $topTracks[] = $track['name'];
+                }
+
+                // Kumpulkan ID artis utama dari setiap lagu untuk mendeteksi genrenya
+                if (!empty($track['artists']) && isset($track['artists'][0]['id'])) {
+                    $trackArtistIds[] = $track['artists'][0]['id'];
+                }
+
+                // Akumulasi durasi lagu (dalam milidetik)
+                $durationMs = $track['duration_ms'] ?? 0;
+                $totalDurationMs += $durationMs;
+
+                // Hitung durasi per artis
+                if (!empty($track['artists'][0]['name'])) {
+                    $artistName = $track['artists'][0]['name'];
+                    $artistDurationMs[$artistName] = ($artistDurationMs[$artistName] ?? 0) + $durationMs;
+                }
+            }
+
+            // Hitung genre berdasarkan artis dari lagu-lagu tersebut
+            $trackArtistIds = array_unique($trackArtistIds); // Hapus duplikat artis
+            
+            if (!empty($trackArtistIds)) {
+                // Spotify API /v1/artists membatasi maksimal 50 ID per request
+                $artistIdsChunk = array_slice($trackArtistIds, 0, 50);
+                
+                $artistsDetailsResponse = $this->http()
+                    ->withToken($token)
+                    ->get("https://api.spotify.com/v1/artists", [
+                        'ids' => implode(',', $artistIdsChunk)
+                    ]);
+                
+                if ($artistsDetailsResponse->successful()) {
+                    $artistsDetails = $artistsDetailsResponse->json('artists') ?? [];
+                    foreach ($artistsDetails as $artistDetail) {
+                        if ($artistDetail && !empty($artistDetail['genres'])) {
+                            foreach ($artistDetail['genres'] as $genre) {
+                                $genreCount[$genre] = ($genreCount[$genre] ?? 0) + 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Tentukan genre yang paling sering muncul dari lagu-lagu ini
+            if (!empty($genreCount)) {
+                arsort($genreCount);
+                $topGenre = ucwords(array_key_first($genreCount));
             }
         }
 
@@ -70,7 +149,7 @@ class DashboardController extends Controller
             'top_artists_json' => $artists
         ];
 
-        // Cache disimpan selama 5 menit per user, berdasarkan Spotify ID
+        // Cache AI analysis selama 5 menit per user
         $cacheKey = "gemini_analysis_{$spotifyId}";
         $aiAnalysis = Cache::get($cacheKey);
 
@@ -111,10 +190,25 @@ class DashboardController extends Controller
             }
         } 
 
+        // Estimasi menit mendengarkan (durasi total top 50 lagu × rata-rata pengulangan)
+        $estimatedMinutes = round($totalDurationMs / 60000);
+
+        // Konversi durasi per artis ke menit, dan urutkan dari terbanyak
+        arsort($artistDurationMs);
+        $artistMinutes = [];
+        foreach ($artistDurationMs as $name => $ms) {
+            $artistMinutes[$name] = round($ms / 60000);
+        }
+
         return view('dashboard', [
             'user' => $user,
             'analysis' => $analysis,
-            'aiAnalysis' => $aiAnalysis
+            'aiAnalysis' => $aiAnalysis,
+            'topArtistImage' => $topArtistImage,
+            'topTracks' => $topTracks,
+            'topGenre' => $topGenre,
+            'minutesListened' => $estimatedMinutes,
+            'artistMinutes' => $artistMinutes,
         ]);
     }
 }
