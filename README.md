@@ -1,23 +1,23 @@
-# SpotiPeek
+# SpotiPeek 🎧✨
 
-**Bongkar Selera Musik Anda Sendiri.**
+**Uncover Your Music Taste.**
 
-SpotiPeek adalah aplikasi web yang menganalisis kebiasaan mendengarkan musik Anda di Spotify. Cukup login dengan akun Spotify, dan SpotiPeek akan menampilkan statistik personal Anda lengkap dengan analisis kepribadian musik dari AI.
+SpotiPeek is a web application that analyzes your Spotify listening habits. Simply log in with your Spotify account, and SpotiPeek will display your personal statistics in a **Spotify Wrapped-style** dashboard — complete with an AI-powered music personality analysis.
 
 ---
 
-## ✨ Fitur
+## ✨ Features
 
-| Fitur | Deskripsi |
+| Feature | Description |
 |---|---|
-| 🔐 **Login Spotify** | Autentikasi aman via Spotify OAuth 2.0 |
-| 🎤 **Top Artists** | 5 artis yang paling sering Anda dengar bulan ini |
-| 🎵 **Top Songs** | 5 lagu yang mendominasi playlist Anda |
-| 🎸 **Top Genre** | Genre musik favorit berdasarkan lagu-lagu Anda |
-| ⏱️ **Minutes Listened** | Estimasi total menit mendengarkan |
-| 🤖 **AI Music Personality** | Analisis kepribadian dari Google Gemini AI |
-| 🖼️ **Wrapped-Style Card** | Tampilan dashboard bergaya Spotify Wrapped |
-| 🎶 **Spotify Player** | Mini player mengambang untuk memutar lagu teratas |
+| 🔐 **Spotify Login** | Secure authentication via Spotify OAuth 2.0 |
+| 🎤 **Top Artists** | Your 5 most listened-to artists this month |
+| 🎵 **Top Songs** | The 5 tracks dominating your playlist |
+| 🎸 **Top Genre** | Your favorite genre based on listening history |
+| ⏱️ **Minutes Listened** | Estimated total listening time |
+| 🤖 **AI Music Personality** | Personality analysis powered by Google Gemini AI |
+| 🖼️ **Wrapped-Style Card** | Dashboard with a Spotify Wrapped aesthetic |
+| 🎶 **Spotify Player** | Floating mini player for your top track |
 
 ---
 
@@ -29,16 +29,6 @@ SpotiPeek adalah aplikasi web yang menganalisis kebiasaan mendengarkan musik And
 - **Database:** Supabase (PostgreSQL)
 - **Auth:** Laravel Socialite + Spotify OAuth
 - **AI:** Google Gemini API (Multi-model fallback)
-
----
-
-## 🖼️ Preview
-
-### Halaman Utama
-> Landing page dengan animasi background album cover yang mengalir.
-
-### Dashboard
-> Kartu recap bergaya Spotify Wrapped akan menampilkan artis, lagu, genre, dan analisis AI.
 
 ---
 
@@ -54,27 +44,29 @@ composer install && npm install
 cp .env.example .env
 php artisan key:generate
 
-# 3. Konfigurasi .env (lihat app/README.md untuk detail)
+# 3. Configure .env (see app/README.md for details)
 
-# 4. Migrasi database
+# 4. Run database migrations
 php artisan migrate:fresh
 
-# 5. Jalankan
+# 5. Start the app
 npm run dev
 php artisan serve
 ```
 
+> 📖 **Full installation and technical configuration guide** available at [`app/README.md`](app/README.md)
+
 ---
 
-## 🔒 Keamanan
+## 🔒 Security
 
-SpotiPeek menerapkan praktik keamanan berikut:
-- ✅ SSL verification otomatis di production
-- ✅ API Key dikirim via HTTP Header (bukan URL)
-- ✅ Route dilindungi middleware autentikasi
-- ✅ Rate limiting pada semua endpoint sensitif
-- ✅ Session terenkripsi
-- ✅ Error handling tanpa kebocoran informasi internal
+SpotiPeek implements the following security practices:
+- ✅ Automatic SSL verification in production
+- ✅ API keys sent via HTTP Headers (not URL query strings)
+- ✅ Routes protected by authentication middleware
+- ✅ Rate limiting on all sensitive endpoints
+- ✅ Encrypted sessions
+- ✅ Error handling without leaking internal information
 
 ---
 

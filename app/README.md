@@ -1,22 +1,22 @@
-# 📚 Dokumentasi Teknis — SpotiPeek
+# 📚 Technical Documentation — SpotiPeek
 
-Dokumen ini berisi panduan teknis lengkap untuk developer yang ingin menjalankan, mengembangkan, atau berkontribusi pada proyek SpotiPeek.
+This document contains the full technical guide for developers who want to run, develop, or contribute to the SpotiPeek project.
 
 ---
 
 ## 💻 Prerequisites
 
-Pastikan Anda telah menginstal:
-- PHP >= 8.2 (dengan ekstensi `fileinfo` aktif)
+Make sure you have the following installed:
+- PHP >= 8.2 (with the `fileinfo` extension enabled)
 - Composer
 - Node.js & npm
-- Akun [Spotify Developer](https://developer.spotify.com/dashboard) (untuk OAuth)
-- Akun [Google AI Studio](https://aistudio.google.com/app/apikey) (untuk API Key Gemini)
-- Proyek [Supabase](https://supabase.com/) (untuk Database PostgreSQL)
+- A [Spotify Developer](https://developer.spotify.com/dashboard) account (for OAuth)
+- A [Google AI Studio](https://aistudio.google.com/app/apikey) account (for Gemini API Key)
+- A [Supabase](https://supabase.com/) project (for PostgreSQL database)
 
 ---
 
-## ⚙️ Langkah Instalasi
+## ⚙️ Installation Steps
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -26,82 +26,82 @@ composer install
 npm install
 ```
 
-### 2. Konfigurasi Environment (`.env`)
+### 2. Configure Environment (`.env`)
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
 ### 3. Setup Database (Supabase)
-Ubah konfigurasi database di file `.env` menggunakan Connection Pooler URL dari Supabase:
+Update the database configuration in your `.env` file using the Connection Pooler URL from Supabase:
 ```env
 DB_CONNECTION=pgsql
-DB_URL="postgresql://postgres.namaproyek:PasswordAnda@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
+DB_URL="postgresql://postgres.projectname:YourPassword@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
 ```
 
 ### 4. Setup Spotify API
-1. Buka [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
-2. Buat aplikasi baru, dapatkan **Client ID** dan **Client Secret**.
-3. Tambahkan Redirect URI (sesuaikan domain lokal Anda):
+1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+2. Create a new application and obtain the **Client ID** and **Client Secret**.
+3. Add a Redirect URI (adjust to your local domain):
    ```
    http://spotipeek.test/auth/callback
    ```
-4. Masukkan kredensial ke `.env`:
+4. Add the credentials to your `.env`:
 ```env
-SPOTIFY_CLIENT_ID=client_id_anda
-SPOTIFY_CLIENT_SECRET=client_secret_anda
+SPOTIFY_CLIENT_ID=your_client_id
+SPOTIFY_CLIENT_SECRET=your_client_secret
 SPOTIFY_REDIRECT_URI=http://spotipeek.test/auth/callback
 ```
 
 ### 5. Setup Gemini AI API
-1. Dapatkan API Key gratis di [Google AI Studio](https://aistudio.google.com/app/apikey).
-2. Tambahkan ke `.env`:
+1. Get a free API Key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Add it to your `.env`:
 ```env
-GEMINI_API_KEY=api_key_gemini_anda
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
-### 6. Migrasi Database
+### 6. Run Database Migrations
 ```bash
 php artisan migrate:fresh
 ```
-> *Catatan: Abaikan peringatan "RLS Disabled in Public" di Supabase Security Advisor — keamanan ditangani oleh backend Laravel.*
+> *Note: You can safely ignore the "RLS Disabled in Public" warning in Supabase Security Advisor — security is fully handled by the Laravel backend.*
 
-### 7. Jalankan Aplikasi
+### 7. Start the Application
 ```bash
-# Terminal 1: Compile aset CSS/JS
+# Terminal 1: Compile CSS/JS assets
 npm run dev
 
-# Terminal 2: Server PHP (jika tidak pakai Laragon/Herd)
+# Terminal 2: PHP server (if not using Laragon/Herd)
 php artisan serve
 ```
 
-Akses di: `http://spotipeek.test` (Laragon) atau `http://localhost:8000` (artisan serve).
+Access at: `http://spotipeek.test` (Laragon) or `http://localhost:8000` (artisan serve).
 
 ---
 
-## 🏗️ Arsitektur Proyek
+## 🏗️ Project Architecture
 
 ```
 app/
 ├── Http/
 │   ├── Controllers/
-│   │   ├── AuthController.php      # Login/Logout Spotify OAuth
-│   │   └── DashboardController.php  # Fetch data Spotify + Gemini AI
+│   │   ├── AuthController.php      # Spotify OAuth Login/Logout
+│   │   └── DashboardController.php  # Fetch Spotify data + Gemini AI
 │   └── Middleware/
-│       └── EnsureSpotifyToken.php   # Proteksi route dashboard
+│       └── EnsureSpotifyToken.php   # Dashboard route protection
 ├── Models/
-│   └── SearchedUser.php             # Model database user
+│   └── SearchedUser.php             # User database model
 ├── Services/
-│   └── SpotifyAnalyzerService.php   # Client Credentials Spotify API
-└── README.md                        # (File ini)
+│   └── SpotifyAnalyzerService.php   # Spotify API Client Credentials
+└── README.md                        # (This file)
 ```
 
 ---
 
-## 🔑 Konfigurasi Penting
+## 🔑 Key Configuration
 
 ### `config/services.php`
-Semua kredensial pihak ketiga terpusat di sini:
+All third-party credentials are centralized here:
 ```php
 'spotify' => [
     'client_id'     => env('SPOTIFY_CLIENT_ID'),
@@ -115,7 +115,7 @@ Semua kredensial pihak ketiga terpusat di sini:
 ```
 
 ### `bootstrap/app.php`
-Middleware custom didaftarkan di sini:
+Custom middleware is registered here:
 ```php
 $middleware->alias([
     'spotify.auth' => \App\Http\Middleware\EnsureSpotifyToken::class,
@@ -123,57 +123,57 @@ $middleware->alias([
 ```
 
 ### `routes/web.php`
-Route yang dilindungi middleware dan rate limiting:
+Routes protected by middleware and rate limiting:
 ```php
-// OAuth (max 10 req/menit)
+// OAuth (max 10 req/min)
 Route::middleware('throttle:10,1')->group(function () {
     Route::get('/auth/redirect', ...)->name('spotify.login');
     Route::get('/auth/callback', ...)->name('spotify.callback');
 });
 
-// Dashboard (butuh login + max 30 req/menit)
+// Dashboard (requires login + max 30 req/min)
 Route::get('/dashboard', ...)
     ->middleware(['spotify.auth', 'throttle:30,1']);
 ```
 
 ---
 
-## 🔒 Catatan Keamanan untuk Production
+## 🔒 Production Security Checklist
 
-Jika aplikasi ini akan di-hosting publik, pastikan:
+Before deploying to a public server, ensure the following:
 
-| # | Tindakan | Lokasi |
+| # | Action | Location |
 |---|---|---|
-| 1 | Ubah `APP_DEBUG=false` | `.env` |
-| 2 | Pastikan `SESSION_ENCRYPT=true` | `.env` |
-| 3 | SSL bypass (`withoutVerifying()`) otomatis nonaktif saat `APP_ENV=production` | `DashboardController.php`, `SpotifyAnalyzerService.php` |
-| 4 | Sesuaikan `SPOTIFY_REDIRECT_URI` dengan domain production | `.env` + Spotify Dashboard |
-| 5 | Pastikan `.env` **tidak pernah** masuk ke Git | `.gitignore` (sudah dikonfigurasi) |
+| 1 | Set `APP_DEBUG=false` | `.env` |
+| 2 | Ensure `SESSION_ENCRYPT=true` | `.env` |
+| 3 | SSL bypass (`withoutVerifying()`) is automatically disabled when `APP_ENV=production` | `DashboardController.php`, `SpotifyAnalyzerService.php` |
+| 4 | Update `SPOTIFY_REDIRECT_URI` to match production domain | `.env` + Spotify Dashboard |
+| 5 | Ensure `.env` is **never** committed to Git | `.gitignore` (already configured) |
 
 ---
 
-## 🔄 Alur Data
+## 🔄 Data Flow
 
 ```
-User → Login Spotify OAuth
+User → Spotify OAuth Login
         ↓
     AuthController (callback)
-        ↓ simpan token ke session
+        ↓ store token in session
     DashboardController (index)
-        ├── GET /me              → Profil user
-        ├── GET /me/top/artists  → Top 10 artis
-        ├── GET /me/top/tracks   → Top 50 lagu
-        ├── GET /v1/artists      → Detail genre artis
-        └── POST Gemini AI       → Analisis kepribadian
+        ├── GET /me              → User profile
+        ├── GET /me/top/artists  → Top 10 artists
+        ├── GET /me/top/tracks   → Top 50 tracks
+        ├── GET /v1/artists      → Artist genre details
+        └── POST Gemini AI       → Personality analysis
         ↓
-    dashboard.blade.php (tampilkan hasil)
+    dashboard.blade.php (render results)
 ```
 
 ---
 
 ## 📦 Caching Strategy
 
-| Data | TTL | Key |
+| Data | TTL | Cache Key |
 |---|---|---|
-| Gemini AI Analysis | 5 menit | `gemini_analysis_{spotifyId}` |
-| Spotify Access Token (Client Credentials) | ~58 menit | `spotify_access_token` |
+| Gemini AI Analysis | 5 minutes | `gemini_analysis_{spotifyId}` |
+| Spotify Access Token (Client Credentials) | ~58 minutes | `spotify_access_token` |
