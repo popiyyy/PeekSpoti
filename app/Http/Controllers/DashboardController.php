@@ -77,7 +77,9 @@ class DashboardController extends Controller
         $topTracks = [];
         $trackArtistIds = [];
         $totalDurationMs = 0;
-        $artistDurationMs = []; // Durasi per artis
+        $artistDurationMs = [];
+        $topTrackId = null;
+        $topTrackAlbumCover = null;
 
         if ($topTracksResponse->successful()) {
             $trackItems = $topTracksResponse->json('items') ?? [];
@@ -85,6 +87,12 @@ class DashboardController extends Controller
                 // Simpan 5 lagu teratas untuk ditampilkan
                 if ($index < 5) {
                     $topTracks[] = $track['name'];
+                }
+
+                // Ambil ID dan album cover dari lagu #1
+                if ($index === 0) {
+                    $topTrackId = $track['id'] ?? null;
+                    $topTrackAlbumCover = $track['album']['images'][0]['url'] ?? null;
                 }
 
                 // Kumpulkan ID artis utama dari setiap lagu untuk mendeteksi genrenya
@@ -209,6 +217,8 @@ class DashboardController extends Controller
             'topGenre' => $topGenre,
             'minutesListened' => $estimatedMinutes,
             'artistMinutes' => $artistMinutes,
+            'topTrackId' => $topTrackId,
+            'topTrackAlbumCover' => $topTrackAlbumCover,
         ]);
     }
 }

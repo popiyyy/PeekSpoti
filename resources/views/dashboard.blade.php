@@ -30,11 +30,43 @@
             0%, 100% { opacity: 0.7; transform: scale(1); }
             50% { opacity: 1; transform: scale(1.05); }
         }
+        @keyframes ken-burns {
+            0% { transform: scale(1.1) translate(0, 0); }
+            25% { transform: scale(1.2) translate(-2%, 1%); }
+            50% { transform: scale(1.15) translate(1%, -1%); }
+            75% { transform: scale(1.25) translate(-1%, -2%); }
+            100% { transform: scale(1.1) translate(0, 0); }
+        }
         .animate-spin-slow { animation: spin-slow 20s linear infinite; }
         .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+        .animate-ken-burns { animation: ken-burns 30s ease-in-out infinite; }
     </style>
 
-    <div class="flex flex-col items-center gap-8 pt-6 md:pt-10">
+    <!-- Background: Album Cover Animasi -->
+    @if(isset($topTrackAlbumCover))
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <img src="{{ $topTrackAlbumCover }}" alt=""
+            class="absolute inset-0 w-full h-full object-cover animate-ken-burns opacity-15 blur-xl scale-110">
+        <div class="absolute inset-0 bg-gradient-to-b from-zinc-950/60 via-zinc-950/80 to-zinc-950"></div>
+    </div>
+    @endif
+
+    <!-- Spotify Embed Player -->
+    @if(isset($topTrackId))
+    <div class="fixed bottom-4 right-4 z-50 rounded-2xl overflow-hidden shadow-2xl border border-zinc-700/50 opacity-90 hover:opacity-100 transition-opacity duration-300"
+        style="width: 352px; height: 80px;">
+        <iframe
+            src="https://open.spotify.com/embed/track/{{ $topTrackId }}?utm_source=generator&theme=0"
+            width="100%" height="80"
+            frameBorder="0" allowfullscreen=""
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            style="border-radius: 12px;">
+        </iframe>
+    </div>
+    @endif
+
+    <div class="flex flex-col items-center gap-8 pt-6 md:pt-10 relative z-10">
 
         <!-- Header: Nama User + Logout -->
         <div class="w-full max-w-md flex items-center justify-between">
@@ -156,32 +188,6 @@
             <p class="text-zinc-300 leading-relaxed relative z-10 text-sm italic">
                 {{ str_replace(['"', '*'], '', $aiAnalysis) }}
             </p>
-        </div>
-        @endif
-
-        <!-- Daftar Lengkap Artis (Expandable) -->
-        @if(isset($artistMinutes) && count($artistMinutes) > 0)
-        <div class="w-full max-w-md">
-            <details class="group">
-                <summary class="cursor-pointer text-center text-sm text-zinc-500 hover:text-emerald-400 transition-colors font-medium py-3 list-none flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4 transition-transform duration-300 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                    Lihat Semua Artis ({{ count($artistMinutes) }})
-                </summary>
-                <div class="grid grid-cols-1 gap-2 mt-3">
-                    @foreach($artistMinutes as $name => $minutes)
-                        <div class="flex items-center justify-between bg-zinc-900/80 px-4 py-3 rounded-xl border border-zinc-800/60 hover:border-emerald-500/30 transition-colors">
-                            <span class="font-semibold text-sm text-zinc-200">
-                                <span class="text-emerald-500 mr-2">{{ $loop->iteration }}.</span>{{ $name }}
-                            </span>
-                            <span class="text-xs font-medium text-zinc-500 bg-zinc-800 px-2.5 py-1 rounded-md">
-                                {{ $minutes }} menit
-                            </span>
-                        </div>
-                    @endforeach
-                </div>
-            </details>
         </div>
         @endif
 
