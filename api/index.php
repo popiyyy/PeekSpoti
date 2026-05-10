@@ -2,6 +2,7 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
+die('LAMBDA_HIT');
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 
 // Menyesuaikan path storage untuk Vercel (karena filesystem utamanya read-only)
