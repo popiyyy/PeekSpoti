@@ -22,12 +22,6 @@ foreach ($dirs as $dir) {
     }
 }
 
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+use Illuminate\Http\Request;
 
-$response = $kernel->handle(
-    $request = Illuminate\Http\Request::capture()
-);
-
-$response->send();
-
-$kernel->terminate($request, $response);
+$app->handleRequest(Request::capture());
