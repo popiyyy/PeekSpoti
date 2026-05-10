@@ -22,6 +22,9 @@ foreach ($dirs as $dir) {
     }
 }
 
+// Set public path agar Vite bisa menemukan manifest.json di folder public/build
+$app->usePublicPath(__DIR__ . '/../public');
+
 use Illuminate\Http\Request;
 
 $app->handleRequest(Request::capture());
