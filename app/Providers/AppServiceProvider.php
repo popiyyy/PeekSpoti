@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production' || str_contains(request()->getHost(), 'vercel.app')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('spotify', \SocialiteProviders\Spotify\Provider::class);
         });
