@@ -2,7 +2,7 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-die('LAMBDA_HIT');
+
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 
 // Menyesuaikan path storage untuk Vercel (karena filesystem utamanya read-only)
@@ -25,4 +25,15 @@ foreach ($dirs as $dir) {
 
 use Illuminate\Http\Request;
 
-$app->handleRequest(Request::capture());
+try {
+    $request = Request::capture();
+    $response = $app->handleRequest($request);
+    
+    if ($response->getStatusCode() === 403 || $response->getStatusCode() === 500) {
+        die("<h1>LARAVEL HTTP " . $response->getStatusCode() . "</h1><p>Path: " . $request->path() . "</p><hr>" . $response->getContent());
+    }
+    
+    $response->send();
+} catch (\Throwable $e) {
+    die("<h1>FATAL EXCEPTION</h1><p>" . $e->getMessage() . "</p><p>File: " . $e->getFile() . ":" . $e->getLine() . "</p>");
+}
