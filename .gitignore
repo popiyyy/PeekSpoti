@@ -4,6 +4,7 @@
 .env.backup
 .env.production
 .env.dev
+.env.prod 
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -24,3 +25,4 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+scratch_test.php

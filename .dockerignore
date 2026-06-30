@@ -1,5 +1,9 @@
 .git
 .env
+.env.prod
+.env.dev
+.env.prod.example
+.env.example
 node_modules
 vendor
 tests
