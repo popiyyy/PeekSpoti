@@ -1,10 +1,10 @@
-# 📚 Technical Documentation — SpotiPeek
+# Technical Documentation SpotiPeek
 
 This document contains the full technical guide for developers who want to run, develop, or contribute to the SpotiPeek project.
 
 ---
 
-## 💻 Prerequisites
+## Prerequisites
 
 Make sure you have the following installed:
 - PHP >= 8.2 (with the `fileinfo` extension enabled)
@@ -16,7 +16,7 @@ Make sure you have the following installed:
 
 ---
 
-## ⚙️ Installation Steps
+## Installation Steps
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -79,7 +79,7 @@ Access at: `http://spotipeek.test` (Laragon) or `http://localhost:8000` (artisan
 
 ---
 
-## 🏗️ Project Architecture
+## Project Architecture
 
 ```
 app/
@@ -98,7 +98,7 @@ app/
 
 ---
 
-## 🔑 Key Configuration
+## Key Configuration
 
 ### `config/services.php`
 All third-party credentials are centralized here:
@@ -138,7 +138,7 @@ Route::get('/dashboard', ...)
 
 ---
 
-## 🔒 Production Security Checklist
+## Production Security Checklist
 
 Before deploying to a public server, ensure the following:
 
@@ -152,7 +152,7 @@ Before deploying to a public server, ensure the following:
 
 ---
 
-## 🔄 Data Flow
+## Data Flow
 
 ```
 User → Spotify OAuth Login
@@ -171,7 +171,7 @@ User → Spotify OAuth Login
 
 ---
 
-## 📦 Caching Strategy
+## Caching Strategy
 
 | Data | TTL | Cache Key |
 |---|---|---|
