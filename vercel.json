@@ -32,5 +32,11 @@
         "CACHE_STORE": "database",
         "SESSION_DRIVER": "database",
         "LOG_CHANNEL": "stderr"
-    }
+    }, 
+    "crons": [
+        {
+            "path": "/api/cron-keep-alive",
+            "schedule": "0 0 * * *"
+        }
+    ]
 }
